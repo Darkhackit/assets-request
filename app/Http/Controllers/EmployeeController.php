@@ -12,6 +12,14 @@ use Illuminate\Validation\ValidationException;
 
 class EmployeeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ADD EMPLOYEE|MANAGE ALL',['only' => 'create']);
+        $this->middleware('permission:LIST EMPLOYEE|MANAGE ALL',['only' => 'index']);
+        $this->middleware('permission:UPDATE EMPLOYEE|MANAGE ALL',['only' => 'show']);
+        $this->middleware('permission:UPDATE EMPLOYEE|MANAGE ALL',['only' => 'update']);
+        $this->middleware('permission:DELETE EMPLOYEE|MANAGE ALL',['only' => 'delete']);
+    }
     public function index(): JsonResponse
     {
         return \response()->json([

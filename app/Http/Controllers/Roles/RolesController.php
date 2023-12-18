@@ -11,6 +11,14 @@ use Spatie\Permission\Models\Role;
 
 class RolesController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ADD ROLE|MANAGE ALL',['only' => 'create']);
+        $this->middleware('permission:LIST ROLE|MANAGE ALL',['only' => 'index']);
+        $this->middleware('permission:UPDATE ROLE|MANAGE ALL',['only' => 'show']);
+        $this->middleware('permission:UPDATE ROLE|MANAGE ALL',['only' => 'update']);
+        $this->middleware('permission:DELETE ROLE|MANAGE ALL',['only' => 'delete']);
+    }
     public function index(): \Illuminate\Http\JsonResponse
     {
         return \response()->json([

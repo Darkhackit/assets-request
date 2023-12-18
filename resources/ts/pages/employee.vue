@@ -228,7 +228,7 @@ onMounted(async () => {
       <VCard id="invoice-list">
         <VCardText class="d-flex align-center flex-wrap gap-4">
           <!-- 👉 Actions  -->
-          <div class="me-3" >
+          <div class="me-3" v-if="$can('delete','employee')">
             <VSelect
               density="compact"
               label="Actions"
@@ -243,7 +243,7 @@ onMounted(async () => {
 
           <div class="d-flex align-center flex-wrap gap-4">
             <!-- 👉 Search  -->
-            <div class="invoice-list-search" >
+            <div class="invoice-list-search" v-if="$can('list','employee')" >
               <VTextField
                 v-model="searchQuery"
                 placeholder="Search Employee"
@@ -252,13 +252,13 @@ onMounted(async () => {
             </div>
 
             <!-- 👉 Create invoice -->
-            <VBtn
+            <VBtn v-if="$can('list','employee')"
               prepend-icon="mdi-search"
               @click.prevent="getData"
             >
               Search
             </VBtn>
-            <VBtn
+            <VBtn v-if="$can('add','employee')"
               @click.prevent="addModal = true"
               prepend-icon="mdi-plus"
             >
@@ -631,6 +631,6 @@ onMounted(async () => {
 </style>
 <route lang="yaml">
   meta:
-    action: read
-    subject: second
+    action: list
+    subject: employee
 </route>

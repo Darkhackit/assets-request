@@ -25,8 +25,8 @@
 </template>
 <route lang="yaml">
   meta:
-    action: read
-    subject: dashboard
+    action: list
+    subject: employee
 </route>
 
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useGenerateImageVariant } from '@/@core/composable/useGenerateImageVariant'
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
+
 import authV1LoginMaskDark from '@images/pages/auth-v1-login-mask-dark.png'
 import authV1LoginMaskLight from '@images/pages/auth-v1-login-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
@@ -71,7 +71,7 @@ const login = async () => {
 
       <VCardText class="pt-2 text-center">
         <h5 class="text-h5 mb-1">
-          <span class="text-capitalize">{{ themeConfig.app.title }}! </span>
+          <span class="text-capitalize">{{ themeConfig.app.title }}</span>
         </h5>
 
         <p class="mb-0 text-center">

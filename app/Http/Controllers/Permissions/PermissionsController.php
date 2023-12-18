@@ -13,6 +13,14 @@ use Spatie\Permission\Models\Permission;
 
 class PermissionsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ADD PERMISSION|MANAGE ALL',['only' => 'create']);
+        $this->middleware('permission:LIST PERMISSION|MANAGE ALL',['only' => 'index']);
+        $this->middleware('permission:UPDATE PERMISSION|MANAGE ALL',['only' => 'show']);
+        $this->middleware('permission:UPDATE PERMISSION|MANAGE ALL',['only' => 'update']);
+        $this->middleware('permission:DELETE PERMISSION|MANAGE ALL',['only' => 'delete']);
+    }
     public function index(): JsonResponse
     {
         return \response()->json([
