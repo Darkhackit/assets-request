@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\Permissions\PermissionsController;
 use App\Http\Controllers\Roles\RolesController;
 use Illuminate\Http\Request;
@@ -30,4 +31,11 @@ Route::group(['middleware' => 'auth:api','prefix' => 'user'],function ($router) 
     Route::patch('/role/{role}',[RolesController::class,'update']);
     Route::post('/role/delete',[RolesController::class,'delete']);
     Route::get('/role/name/{val}',[RolesController::class,'names']);
+
+    Route::post('/employee',[EmployeeController::class,'create']);
+    Route::get('/employee',[EmployeeController::class,'index']);
+    Route::get('/employee/{employee}',[EmployeeController::class,'show']);
+    Route::patch('/employee/{employee}',[EmployeeController::class,'update']);
+    Route::post('/employee/delete',[EmployeeController::class,'delete']);
+    Route::get('/employee/name/{val}',[EmployeeController::class,'names']);
 });

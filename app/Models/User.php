@@ -45,6 +45,10 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
     ];
 
+    public static function withTrashed()
+    {
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey(); // TODO: Implement getJWTIdentifier() method.
