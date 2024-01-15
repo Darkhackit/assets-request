@@ -15,6 +15,10 @@ const router = createRouter({
           return { name: 'index' }
         if (userData === 'EMPLOYEE')
           return { name: 'send-invoice' }
+        if (userData === 'AMC')
+          return { name: 'send-invoice' }
+        if (userData === 'FRONTDESK')
+          return { name: 'send-invoice' }
 
         return { name: 'login', query: to.query }
       },
