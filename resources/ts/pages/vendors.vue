@@ -211,7 +211,7 @@ onMounted(async () => {
       <VCard id="invoice-list">
         <VCardText class="d-flex align-center flex-wrap gap-4">
           <!-- 👉 Actions  -->
-          <div class="me-3" v-if="$can('delete','permission')" >
+          <div class="me-3" v-if="$can('delete','vendor')" >
             <VSelect
               density="compact"
               label="Actions"
@@ -225,7 +225,7 @@ onMounted(async () => {
 
           <div class="d-flex align-center flex-wrap gap-4">
             <!-- 👉 Search  -->
-            <div class="invoice-list-search" v-if="$can('list','permission')" >
+            <div class="invoice-list-search" v-if="$can('list','vendor')" >
               <VTextField
                 v-model="searchQuery"
                 placeholder="Search Vendor"
@@ -234,13 +234,13 @@ onMounted(async () => {
             </div>
 
             <!-- 👉 Create invoice -->
-            <VBtn v-if="$can('list','permission')"
+            <VBtn v-if="$can('list','vendor')"
                   prepend-icon="mdi-search"
                   @click.prevent="getData"
             >
               Search
             </VBtn>
-            <VBtn v-if="$can('add','permission')"
+            <VBtn v-if="$can('add','vendor')"
                   @click.prevent="addModal = true"
                   prepend-icon="mdi-plus"
             >
@@ -604,5 +604,5 @@ onMounted(async () => {
 <route lang="yaml">
 meta:
   action: list
-  subject: permission
+  subject: vendor
 </route>

@@ -27,7 +27,7 @@ export default [
     to: { name: 'vendors' },
     icon: { icon: 'mdi-file-document-outline' },
     action: 'list',
-    subject: 'invoice',
+    subject: 'vendor',
   },
   {
     title: 'Pending Assets',
