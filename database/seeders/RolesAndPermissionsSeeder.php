@@ -33,6 +33,17 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'DELETE EMPLOYEE']);
         Permission::create(['name' => 'LIST EMPLOYEE']);
 
+        Permission::create(['name' => 'ADD INVOICE']);
+        Permission::create(['name' => 'UPDATE PENDING INVOICE']);
+        Permission::create(['name' => 'UPDATE PROCESSING INVOICE']);
+        Permission::create(['name' => 'DELETE INVOICE']);
+        Permission::create(['name' => 'LIST INVOICE']);
+
+        Permission::create(['name' => 'ADD VENDOR']);
+        Permission::create(['name' => 'UPDATE VENDOR']);
+        Permission::create(['name' => 'DELETE VENDOR']);
+        Permission::create(['name' => 'LIST VENDOR']);
+
         $role = Role::create(['name' => 'SUPER ADMIN']);
         $role->givePermissionTo('MANAGE ALL');
 

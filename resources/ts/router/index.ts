@@ -7,6 +7,18 @@ import { canNavigate } from '@layouts/plugins/casl'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/',
+      redirect: to => {
+        const userData = JSON.parse(localStorage.getItem('userRole') || '{}')
+        if (userData === 'SUPER ADMIN')
+          return { name: 'index' }
+        if (userData === 'EMPLOYEE')
+          return { name: 'send-invoice' }
+
+        return { name: 'login', query: to.query }
+      },
+    },
     ...setupLayouts(routes),
   ],
 })

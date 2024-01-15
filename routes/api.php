@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Permissions\PermissionsController;
 use App\Http\Controllers\Roles\RolesController;
+use App\Http\Controllers\VendorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -38,4 +41,20 @@ Route::group(['middleware' => 'auth:api','prefix' => 'user'],function ($router) 
     Route::patch('/employee/{employee}',[EmployeeController::class,'update']);
     Route::post('/employee/delete',[EmployeeController::class,'delete']);
     Route::get('/employee/name/{val}',[EmployeeController::class,'names']);
+
+    Route::post('/send-invoice',[InvoiceController::class,'create']);
+    Route::get('/send-invoice',[InvoiceController::class,'index']);
+    Route::get('/all-invoice',[InvoiceController::class,'getAllAssets']);
+    Route::get('/download-invoice',[InvoiceController::class,'downloadInvoice']);
+    Route::get('/get-invoice/{invoice}',[InvoiceController::class,'show']);
+    Route::patch('/update-invoice/{invoice}',[InvoiceController::class,'update']);
+    Route::post('/update-document/{invoice}',[DocumentController::class,'create']);
+    Route::post('/update-data/{invoice}',[InvoiceController::class,'updateData']);
+
+    Route::post('/vendors',[VendorController::class,'create']);
+    Route::get('/vendors',[VendorController::class,'index']);
+    Route::get('/vendors/{vendor}',[VendorController::class,'show']);
+    Route::patch('/vendors/{vendor}',[VendorController::class,'update']);
+    Route::post('/vendors/delete',[VendorController::class,'delete']);
+    Route::post('/vendors/name',[VendorController::class,'names']);
 });

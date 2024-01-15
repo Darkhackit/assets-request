@@ -16,6 +16,27 @@ export default [
     subject: 'employee',
   },
   {
+    title: 'Request Assets',
+    to: { name: 'send-invoice' },
+    icon: { icon: 'mdi-file-document-outline' },
+    action: 'list',
+    subject: 'invoice',
+  },
+  {
+    title: 'Vendors',
+    to: { name: 'vendors' },
+    icon: { icon: 'mdi-file-document-outline' },
+    action: 'list',
+    subject: 'invoice',
+  },
+  {
+    title: 'Pending Assets',
+    to: { name: 'pending-invoice' },
+    icon: { icon: 'mdi-file-document-outline' },
+    action: 'update',
+    subject: 'pending',
+  },
+  {
     title: 'Access Control',
     action: 'list',
     subject: 'permission',

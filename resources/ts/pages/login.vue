@@ -37,6 +37,7 @@ const login = async () => {
     window.localStorage.setItem("userAbilities",JSON.stringify(user.ability))
     window.localStorage.setItem("accessToken",JSON.stringify(accessToken))
     window.localStorage.setItem("userData",JSON.stringify(user.user))
+    window.localStorage.setItem("userRole",JSON.stringify(user.roles))
     processing.value = false
 
     router.push(route.query.to ? String(route.query.to) : '/')
@@ -71,7 +72,7 @@ const login = async () => {
 
       <VCardText class="pt-2 text-center">
         <h5 class="text-h5 mb-1">
-          <span class="text-capitalize">{{ themeConfig.app.title }}</span>
+          <span class="text-capitalize">ASSET FINANCIAL REQUEST</span>
         </h5>
 
         <p class="mb-0 text-center">

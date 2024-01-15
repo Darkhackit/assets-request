@@ -19,6 +19,7 @@ class UserResource extends JsonResource
                 'name' => $this->name,
                 'email' => $this->email
             ],
+            'roles' => $this->roles->first()?->name,
             'ability' => [
                 //Permission
                 $this->can('ADD PERMISSION') || $this->can('MANAGE ALL') ? [
@@ -72,6 +73,45 @@ class UserResource extends JsonResource
                 $this->can('DELETE EMPLOYEE') || $this->can('MANAGE ALL') ? [
                     "action" => "delete",
                     "subject" => "employee"
+                ] : [],
+                //vendor
+                $this->can('ADD VENDOR') || $this->can('MANAGE ALL') ? [
+                    "action" => "add",
+                    "subject" => "vendor"
+                ] : [],
+                $this->can('LIST VENDOR') || $this->can('MANAGE ALL') ? [
+                    "action" => "list",
+                    "subject" => "vendor"
+                ] : [],
+                $this->can('UPDATE VENDOR') || $this->can('MANAGE ALL') ? [
+                    "action" => "update",
+                    "subject" => "vendor"
+                ] : [],
+                $this->can('DELETE VENDOR') || $this->can('MANAGE ALL') ? [
+                    "action" => "delete",
+                    "subject" => "vendor"
+                ] : [],
+
+                //Invoice
+                $this->can('ADD INVOICE') || $this->can('MANAGE ALL') ? [
+                    "action" => "add",
+                    "subject" => "invoice"
+                ] : [],
+                $this->can('LIST INVOICE') || $this->can('MANAGE ALL') ? [
+                    "action" => "list",
+                    "subject" => "invoice"
+                ] : [],
+                $this->can('UPDATE PENDING INVOICE') || $this->can('MANAGE ALL') ? [
+                    "action" => "update",
+                    "subject" => "pending"
+                ] : [],
+                $this->can('UPDATE PROCESSING INVOICE') || $this->can('MANAGE ALL') ? [
+                    "action" => "update",
+                    "subject" => "processing"
+                ] : [],
+                $this->can('DELETE INVOICE') || $this->can('MANAGE ALL') ? [
+                    "action" => "delete",
+                    "subject" => "invoice"
                 ] : [],
             ]
         ];
