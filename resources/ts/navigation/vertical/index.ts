@@ -6,7 +6,7 @@ export default [
     to: { name: 'index' },
     icon: { icon: 'mdi-home-outline' },
     action: 'list',
-    subject: 'employee',
+    subject: 'permission',
   },
   {
     title: 'Employees',
