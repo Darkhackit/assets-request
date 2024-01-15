@@ -6,7 +6,7 @@
 <route lang="yaml">
   meta:
     action: list
-    subject: employee
+    subject: permission
 </route>
 
 
