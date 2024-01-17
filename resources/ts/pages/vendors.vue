@@ -121,7 +121,7 @@ const updateData = async () => {
     ed_form.value.id = ""
     updateModal.value = false
     showStatus.value = true
-    statusDetails.value = "Permission updated Successfully"
+    statusDetails.value = "Vendor updated Successfully"
     await getData()
   }catch (e) {
     console.log(e.response)
@@ -452,7 +452,7 @@ onMounted(async () => {
                 @input="clearErrors('address')"
                 :class="{'v-field--error': errors?.address}"
               />
-              <small style="color: #ff4c20" v-if="errors.name">{{errors.address[0]}}</small>
+              <small style="color: #ff4c20" v-if="errors.address">{{errors.address[0]}}</small>
             </VCol>
             <VCol
               cols="12"
@@ -465,7 +465,7 @@ onMounted(async () => {
                 @input="clearErrors('active')"
                 :class="{'v-field--error': errors?.active}"
               />
-              <small style="color: #ff4c20" v-if="errors.name">{{errors.active[0]}}</small>
+              <small style="color: #ff4c20" v-if="errors.active">{{errors.active[0]}}</small>
             </VCol>
           </VRow>
         </VCardText>

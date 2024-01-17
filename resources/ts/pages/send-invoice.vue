@@ -20,6 +20,7 @@ const addModal = ref(false)
 const updateModal = ref(false)
 const editModal = ref(false)
 const errors = ref([])
+const updateErrors = ref([])
 const error = ref([])
 const firstIndex = ref(0)
 const selectAction = ref("")
@@ -75,19 +76,22 @@ const addData = async (status) => {
         "Content-Type":"multipart/form-data"
       }
     })
-    form.value.name = ""
-    form.value.email = ""
-    form.value.password = ""
-    form.value.password_confirmation = ""
-    form.value.role = []
+    form.value.status = ""
+    form.value.vendor = ""
+    form.value.branch = ""
+    form.value.phone_number = ""
+    form.value.items = []
+    form.value.proforma = []
     processing.value = false
     addModal.value = false
     showStatus.value = true
-    statusDetails.value = "Employee added Successfully"
+    statusDetails.value = "Request added Successfully"
     await getData()
   }catch (e) {
+    console.log(e)
     if (e.response.status === 422) {
-      errors.value = e.response.data.errors
+      processing.value = false
+      return errors.value = e.response.data.errors
     }
     processing.value = false
   }
@@ -97,6 +101,9 @@ const clearErrors = (val) => {
 }
 const clearError = (val) => {
   delete error.value[val]
+}
+const clearUpdatedError = (val) => {
+  delete updateErrors.value[val]
 }
 
 const getImage = (e) => {
@@ -252,7 +259,7 @@ const updateSavedData = async (s) => {
   }catch (e) {
     console.log(e.response)
     if (e.response.status === 422) {
-      error.value = e.response.data.errors
+      updateErrors.value = e.response.data.errors
     }
   }
 }
@@ -290,6 +297,18 @@ const deleteDate = async () => {
     await axios.post(`/api/user/employee/delete`,{id:selectedRows.value})
     showStatus.value = true
     statusDetails.value = "Role Deleted Successfully"
+    await getData()
+    selectAction.value = ""
+  }catch (e) {
+    selectAction.value = ""
+  }
+}
+
+const deleteInvoiceDate = async () => {
+  try {
+    await axios.post(`/api/user/invoice/delete`,{id:selectedRows.value})
+    showStatus.value = true
+    statusDetails.value = "Request Deleted Successfully"
     await getData()
     selectAction.value = ""
   }catch (e) {
@@ -554,7 +573,7 @@ onMounted(async () => {
                 <IconBtn @click.prevent="show(invoice.id)" >
                   <VIcon icon="mdi-edit-outline" />
                 </IconBtn>
-                <IconBtn @click.prevent="deleteDate(invoice.id)" >
+                <IconBtn @click.prevent="deleteInvoiceDate(invoice.id)" >
                   <VIcon icon="mdi-delete-outline" />
                 </IconBtn>
               </div>
@@ -646,11 +665,12 @@ onMounted(async () => {
               <VSelect
                 density="compact"
                 label="Vendor"
+                @input="clearErrors('vendor')"
                 :items="permissions"
                 v-model="form.vendor"
                 class="invoice-list-actions"
               />
-              <small style="color: #ff4c20" v-if="errors.branch">{{errors.branch[0]}}</small>
+              <small style="color: #ff4c20" v-if="errors.vendor">{{errors.vendor[0]}}</small>
             </VCol>
             <VCol
               cols="6"
@@ -675,7 +695,7 @@ onMounted(async () => {
                 @input="clearErrors('phone_number')"
                 :class="{'v-field--error': errors?.phone_number}"
               />
-              <small style="color: #ff4c20" v-if="errors.branch">{{errors.phone_number[0]}}</small>
+              <small style="color: #ff4c20" v-if="errors.phone_number">{{errors.phone_number[0]}}</small>
             </VCol>
             <VCol cols="12">
               <VBtn @click.prevent="addDocuments" class="mb-2">Add Documents</VBtn>
@@ -685,8 +705,8 @@ onMounted(async () => {
                     v-model="pro.name"
                     :readonly="processing"
                     label="Proforma Invoice Name"
-                    @input="clearErrors('pro')"
-                    :class="{'v-field--error': errors?.pro}"
+                    @input="clearErrors(`proforma.${index}.name`)"
+                    :class="errors ? errors[`proforma.${index}.name`] ? 'v-field--error': '' : ''"
                   />
                 </VCol>
                 <VCol
@@ -697,10 +717,9 @@ onMounted(async () => {
                     type="file"
                     :readonly="processing"
                     label="Proforma Invoice"
-                    @input="clearErrors('proforma_invoice')"
-                    :class="{'v-field--error': errors?.proforma_invoice}"
+                    @input="clearErrors(`proforma.${index}.proforma`)"
+                    :class="errors ? errors[`proforma.${index}.proforma`] ? 'v-field--error': '' : ''"
                   />
-                  <small style="color: #ff4c20" v-if="errors.proforma_invoice">{{errors.proforma_invoice[0]}}</small>
                 </VCol>
                 <VCol cols="2">
                   <VBtn @click.prevent="deleteDocuments(index)">x</VBtn>
@@ -715,8 +734,8 @@ onMounted(async () => {
                    v-model="item.name"
                    :readonly="processing"
                    label="Item Description"
-                   @input="clearErrors('branch')"
-                   :class="{'v-field--error': errors?.branch}"
+                   @input="clearErrors(`items.${index}.name`)"
+                   :class="errors ? errors[`items.${index}.name`] ? 'v-field--error': '' : ''"
                  />
                </VCol>
                <VCol cols="2">
@@ -724,8 +743,8 @@ onMounted(async () => {
                    v-model="item.code"
                    :readonly="processing"
                    label="Item Code"
-                   @input="clearErrors('branch')"
-                   :class="{'v-field--error': errors?.branch}"
+                   @input="clearErrors(`items.${index}.code`)"
+                   :class="errors ? errors[`items.${index}.code`] ? 'v-field--error': '' : ''"
                  />
                </VCol>
                <VCol cols="3">
@@ -734,8 +753,8 @@ onMounted(async () => {
                    v-model="item.price"
                    :readonly="processing"
                    label="Price"
-                   @input="clearErrors('branch')"
-                   :class="{'v-field--error': errors?.branch}"
+                   @input="clearErrors(`items.${index}.price`)"
+                   :class="errors ? errors[`items.${index}.price`] ? 'v-field--error': '' : ''"
                  />
                </VCol>
                <VCol cols="2">
@@ -744,12 +763,12 @@ onMounted(async () => {
                    v-model="item.quantity"
                    :readonly="processing"
                    label="Quantity"
-                   @input="clearErrors('branch')"
-                   :class="{'v-field--error': errors?.branch}"
+                   @input="clearErrors(`items.${index}.quantity`)"
+                   :class="errors ? errors[`items.${index}.quantity`] ? 'v-field--error': '' : ''"
                  />
                </VCol>
                <VCol cols="2">
-                 <VBtn @click.prevent="deleteItem(index)">x</VBtn>
+                 <VBtn @click.prevent="deleteItem(index)">&times;</VBtn>
                </VCol>
              </VRow>
            </VCol>
@@ -890,7 +909,7 @@ onMounted(async () => {
                 v-model="updatedForm.vendor"
                 class="invoice-list-actions"
               />
-              <small style="color: #ff4c20" v-if="errors.branch">{{errors.branch[0]}}</small>
+              <small style="color: #ff4c20" v-if="updateErrors.vendor">{{errors.vendor[0]}}</small>
             </VCol>
             <VCol
               cols="6"
@@ -899,10 +918,10 @@ onMounted(async () => {
                 v-model="updatedForm.branch"
                 :readonly="processing"
                 label="Branch"
-                @input="clearErrors('branch')"
-                :class="{'v-field--error': errors?.branch}"
+                @input="clearUpdatedError('branch')"
+                :class="{'v-field--error': updateErrors?.branch}"
               />
-              <small style="color: #ff4c20" v-if="errors.branch">{{errors.branch[0]}}</small>
+              <small style="color: #ff4c20" v-if="updateErrors.branch">{{errors.updateErrors[0]}}</small>
             </VCol>
             <VCol
               cols="6"
@@ -912,10 +931,10 @@ onMounted(async () => {
                 v-model="updatedForm.phone_number"
                 :readonly="processing"
                 label="Phone Number"
-                @input="clearErrors('phone_number')"
-                :class="{'v-field--error': errors?.phone_number}"
+                @input="clearUpdatedError('phone_number')"
+                :class="{'v-field--error': updateErrors?.phone_number}"
               />
-              <small style="color: #ff4c20" v-if="errors.branch">{{errors.phone_number[0]}}</small>
+              <small style="color: #ff4c20" v-if="updateErrors.phone_number">{{updateErrors.phone_number[0]}}</small>
             </VCol>
             <VCol cols="12">
               <VBtn @click.prevent="addEditedDocuments" class="mb-2">Add Documents</VBtn>
@@ -925,8 +944,8 @@ onMounted(async () => {
                     v-model="pro.name"
                     :readonly="processing"
                     label="Proforma Invoice Name"
-                    @input="clearErrors('pro')"
-                    :class="{'v-field--error': errors?.pro}"
+                    @input="clearUpdatedError(`proforma.${index}.name`)"
+                    :class="errors ? updateErrors[`proforma.${index}.name`] ? 'v-field--error': '' : ''"
                   />
                 </VCol>
                 <VCol
@@ -937,10 +956,9 @@ onMounted(async () => {
                     type="file"
                     :readonly="processing"
                     label="Proforma Invoice"
-                    @input="clearErrors('proforma_invoice')"
-                    :class="{'v-field--error': errors?.proforma_invoice}"
+                    @input="clearUpdatedError(`proforma.${index}.proforma`)"
+                    :class="errors ? updateErrors[`proforma.${index}.proforma`] ? 'v-field--error': '' : ''"
                   />
-                  <small style="color: #ff4c20" v-if="errors.proforma_invoice">{{errors.proforma_invoice[0]}}</small>
                 </VCol>
                 <VCol cols="2">
                   <VBtn @click.prevent="deleteEditedDocuments(index)">x</VBtn>
@@ -955,8 +973,8 @@ onMounted(async () => {
                     v-model="item.name"
                     :readonly="processing"
                     label="Item Description"
-                    @input="clearErrors('branch')"
-                    :class="{'v-field--error': errors?.branch}"
+                    @input="clearUpdatedError(`items.${index}.name`)"
+                    :class="errors ? updateErrors[`items.${index}.name`] ? 'v-field--error': '' : ''"
                   />
                 </VCol>
                 <VCol cols="2">
@@ -964,8 +982,8 @@ onMounted(async () => {
                     v-model="item.code"
                     :readonly="processing"
                     label="Item Code"
-                    @input="clearErrors('branch')"
-                    :class="{'v-field--error': errors?.branch}"
+                    @input="clearUpdatedError(`items.${index}.code`)"
+                    :class="errors ? updateErrors[`items.${index}.code`] ? 'v-field--error': '' : ''"
                   />
                 </VCol>
                 <VCol cols="3">
@@ -974,8 +992,8 @@ onMounted(async () => {
                     v-model="item.price"
                     :readonly="processing"
                     label="Price"
-                    @input="clearErrors('branch')"
-                    :class="{'v-field--error': errors?.branch}"
+                    @input="clearUpdatedError(`items.${index}.price`)"
+                    :class="errors ? updateErrors[`items.${index}.price`] ? 'v-field--error': '' : ''"
                   />
                 </VCol>
                 <VCol cols="2">
@@ -984,8 +1002,8 @@ onMounted(async () => {
                     v-model="item.quantity"
                     :readonly="processing"
                     label="Quantity"
-                    @input="clearErrors('branch')"
-                    :class="{'v-field--error': errors?.branch}"
+                    @input="clearUpdatedError(`items.${index}.quantity`)"
+                    :class="errors ? updateErrors[`items.${index}.quantity`] ? 'v-field--error': '' : ''"
                   />
                 </VCol>
                 <VCol cols="2">

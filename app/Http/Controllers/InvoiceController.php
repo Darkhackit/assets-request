@@ -53,7 +53,16 @@ class InvoiceController extends Controller
     {
         $this->validate($request,[
             'branch' => ['required'],
-            'proforma' => ['required'],
+            'proforma' => ['required','array'],
+            'proforma.*.name' => ['required'],
+            'proforma.*.proforma' => ['required'],
+            'vendor' => ['required'],
+            'items' => ['required','array'],
+            'items.*.name' => ['required'],
+            'items.*.code' => ['required'],
+            'items.*.price' => ['required','integer','min:1'],
+            'items.*.quantity' => ['required','integer','min:1'],
+            'phone_number' => ['required'],
         ]);
         DB::beginTransaction();
         try {
@@ -269,8 +278,16 @@ class InvoiceController extends Controller
 //        }
         $this->validate($request,[
             'branch' => ['required'],
-            'proforma' => ['required'],
-            'items' => ['required'],
+            'proforma' => ['required','array'],
+            'proforma.*.name' => ['required'],
+            'proforma.*.proforma' => ['required'],
+            'vendor' => ['required'],
+            'items' => ['required','array'],
+            'items.*.name' => ['required'],
+            'items.*.code' => ['required'],
+            'items.*.price' => ['required','integer','min:1'],
+            'items.*.quantity' => ['required','integer','min:1'],
+            'phone_number' => ['required'],
         ]);
         DB::beginTransaction();
         try {
