@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\Invoice;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -10,16 +10,16 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class RejectInvoiceMail extends Mailable
+class SendPersonalPassword extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(public Invoice $invoice)
+    public function __construct(public User $user)
     {
-
+        //
     }
 
     /**
@@ -28,7 +28,7 @@ class RejectInvoiceMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Response From AMC',
+            subject: 'Asset Finance Portal Credentials',
         );
     }
 
@@ -38,8 +38,8 @@ class RejectInvoiceMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.reject_invoice',
-            with: ['invoice' => $this->invoice]
+            markdown: 'email.send_personal_pasword',
+            with: ['user' => $this->user]
         );
     }
 

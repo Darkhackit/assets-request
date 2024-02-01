@@ -268,7 +268,7 @@ onMounted(async () => {
     <section v-if="invoices">
       <!-- 👉 Invoice Filters  -->
       <VCardText class="d-flex flex-column gap-4">
-      <div>
+      <div v-if="$can('list','invoice')">
         <VTabs>
           <VTab @click.prevent="ch('pending')">Inbox</VTab>
           <VTab @click.prevent="ch('ch')">OutBox</VTab>
@@ -280,7 +280,7 @@ onMounted(async () => {
       <VCard id="invoice-list">
         <VCardText class="d-flex align-center flex-wrap gap-4">
           <!-- 👉 Actions  -->
-          <div class="me-3" v-if="$can('delete','employee')">
+          <div class="me-3" v-if="$can('delete','invoice')">
             <VSelect
               density="compact"
               label="Actions"
@@ -299,7 +299,7 @@ onMounted(async () => {
             >
               EXCEL
             </VBtn>
-            <div class="invoice-list-search" v-if="$can('list','employee')" >
+            <div class="invoice-list-search" v-if="$can('update','processing')" >
               <VTextField
                 type="date"
                 label="From"
@@ -308,7 +308,7 @@ onMounted(async () => {
                 density="compact"
               />
             </div>
-            <div class="invoice-list-search" v-if="$can('list','employee')" >
+            <div class="invoice-list-search" v-if="$can('update','processing')" >
               <VTextField
                 label="To"
                 type="date"
@@ -318,7 +318,7 @@ onMounted(async () => {
               />
             </div>
             <!-- 👉 Search  -->
-            <div class="me-3">
+            <div class="me-3" v-if="$can('update','processing')">
               <VSelect
                 clearable
                 density="compact"
@@ -328,7 +328,7 @@ onMounted(async () => {
                 v-model="with_invoice"
               />
             </div>
-            <div class="me-3">
+            <div class="me-3" v-if="$can('update','processing')">
               <VSelect
                 clearable
                 density="compact"
@@ -338,7 +338,7 @@ onMounted(async () => {
                 v-model="status"
               />
             </div>
-            <div class="invoice-list-search" v-if="$can('list','employee')" >
+            <div class="invoice-list-search" v-if="$can('list','invoice')" >
               <VTextField
                 v-model="searchQuery"
                 placeholder="Search"
@@ -347,7 +347,7 @@ onMounted(async () => {
             </div>
 
             <!-- 👉 Create invoice -->
-            <VBtn v-if="$can('list','employee')"
+            <VBtn v-if="$can('list','invoice')"
                   prepend-icon="mdi-search"
                   @click.prevent="getData"
             >
@@ -491,7 +491,7 @@ onMounted(async () => {
 <!--                             <VIcon icon="mdi-eye-outline" />-->
 <!--                           </IconBtn>-->
 
-                            <IconBtn v-if="$can('update','pending')" @click.prevent="showData(invoice.id)" >
+                            <IconBtn v-if="$can('update','processing')" @click.prevent="showData(invoice.id)" >
                               <VIcon icon="mdi-edit-outline" />
                             </IconBtn>
             </td>
@@ -763,6 +763,6 @@ onMounted(async () => {
 </style>
 <route lang="yaml">
   meta:
-    action: list
-    subject: employee
+    action: update
+    subject: pending
 </route>

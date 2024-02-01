@@ -31,6 +31,7 @@ const exportData = ref("")
 const search = ref()
 const loadPermissions = ref(false)
 const permissions = ref([])
+const vendor_branches = ref([])
 const form = ref({
   vendor:'',
   status:'',
@@ -61,6 +62,8 @@ const updatedForm = ref({
 const table = ref(null)
 const ed_form = ref({
   voucher:'',
+  pick_up_date:'',
+  invoice_number:'',
   discounted_amount:0,
   delivery_note:'',
   id:''
@@ -69,32 +72,68 @@ const processing = ref(false)
 const ed_processing = ref(false)
 const addData = async (status) => {
   form.value.status = status
-  processing.value = true
-  try {
-    await axios.post(`/api/user/send-invoice`,form.value,{
-      headers: {
-        "Content-Type":"multipart/form-data"
+  if (status == "pending") {
+    if (window.confirm("Are you sure you want to send it to AMC")) {
+      processing.value = true
+      try {
+        await axios.post(`/api/user/send-invoice`,form.value,{
+          headers: {
+            "Content-Type":"multipart/form-data"
+          }
+        })
+        form.value.status = ""
+        form.value.vendor = ""
+        form.value.branch = ""
+        form.value.phone_number = ""
+        form.value.items = []
+        form.value.proforma = []
+        processing.value = false
+        addModal.value = false
+        showStatus.value = true
+        statusDetails.value = "Request added Successfully"
+        await getData()
+      }catch (e) {
+        console.log(e)
+        if (e.response.status === 422) {
+          processing.value = false
+          return errors.value = e.response.data.errors
+        }
+        processing.value = false
       }
-    })
-    form.value.status = ""
-    form.value.vendor = ""
-    form.value.branch = ""
-    form.value.phone_number = ""
-    form.value.items = []
-    form.value.proforma = []
-    processing.value = false
-    addModal.value = false
-    showStatus.value = true
-    statusDetails.value = "Request added Successfully"
-    await getData()
-  }catch (e) {
-    console.log(e)
-    if (e.response.status === 422) {
-      processing.value = false
-      return errors.value = e.response.data.errors
     }
-    processing.value = false
   }
+
+  if (status == "draft") {
+    if (window.confirm("Are you sure you want to save it as DRAFT")) {
+      processing.value = true
+      try {
+        await axios.post(`/api/user/send-invoice`,form.value,{
+          headers: {
+            "Content-Type":"multipart/form-data"
+          }
+        })
+        form.value.status = ""
+        form.value.vendor = ""
+        form.value.branch = ""
+        form.value.phone_number = ""
+        form.value.items = []
+        form.value.proforma = []
+        processing.value = false
+        addModal.value = false
+        showStatus.value = true
+        statusDetails.value = "Request added Successfully"
+        await getData()
+      }catch (e) {
+        console.log(e)
+        if (e.response.status === 422) {
+          processing.value = false
+          return errors.value = e.response.data.errors
+        }
+        processing.value = false
+      }
+    }
+  }
+
 }
 const clearErrors = (val) => {
   delete errors.value[val]
@@ -243,23 +282,50 @@ const showData = async (id) => {
 
 const updateSavedData = async (s) => {
   updatedForm.value.status = s
-  try {
-    await axios.post(`/api/user/update-data/${updatedForm.value.id}`,updatedForm.value,{
-      headers: {
-        "Content-Type":"multipart/form-data"
+  if (s == "pending") {
+    if (window.confirm("Are you sure you want to send it to AMC")) {
+      try {
+        await axios.post(`/api/user/update-data/${updatedForm.value.id}`,updatedForm.value,{
+          headers: {
+            "Content-Type":"multipart/form-data"
+          }
+        })
+        ed_form.value.voucher = ""
+        ed_form.value.id = ""
+        ed_form.value.delivery_note = ""
+        editModal.value = false
+        showStatus.value = true
+        statusDetails.value = "Document updated Successfully"
+        await getData()
+      }catch (e) {
+        console.log(e.response)
+        if (e.response.status === 422) {
+          updateErrors.value = e.response.data.errors
+        }
       }
-    })
-    ed_form.value.voucher = ""
-    ed_form.value.id = ""
-    ed_form.value.delivery_note = ""
-    editModal.value = false
-    showStatus.value = true
-    statusDetails.value = "Document updated Successfully"
-    await getData()
-  }catch (e) {
-    console.log(e.response)
-    if (e.response.status === 422) {
-      updateErrors.value = e.response.data.errors
+    }
+  }
+  if (s == "draft") {
+    if (window.confirm("Are you sure you want to save it as DRAFT")) {
+      try {
+        await axios.post(`/api/user/update-data/${updatedForm.value.id}`,updatedForm.value,{
+          headers: {
+            "Content-Type":"multipart/form-data"
+          }
+        })
+        ed_form.value.voucher = ""
+        ed_form.value.id = ""
+        ed_form.value.delivery_note = ""
+        editModal.value = false
+        showStatus.value = true
+        statusDetails.value = "Document updated Successfully"
+        await getData()
+      }catch (e) {
+        console.log(e.response)
+        if (e.response.status === 422) {
+          updateErrors.value = e.response.data.errors
+        }
+      }
     }
   }
 }
@@ -367,20 +433,41 @@ const addRemoveIndividualCheckbox = checkID => {
     selectAllInvoice.value = true
   }
 }
-watch(search,() => {
-  getPermissions()
-})
-const getPermissions = debounce(async ()=> {
+
+watch(() => form.value.vendor,async (val) => {
+  form.value.branch = ""
   loadPermissions.value = true
   try {
-    let response = await axios.post(`/api/user/vendors/name`)
-    console.log(response)
-    permissions.value = response.data
+    let response = await axios.post(`/api/user/vendor_branches/name/${val}`)
+    vendor_branches.value = response.data
     loadPermissions.value = false
   }catch (e) {
     loadPermissions.value = false
   }
+})
+watch(() => updatedForm.value.vendor,async (val) => {
+  updatedForm.value.branch = ""
+  loadPermissions.value = true
+  try {
+    let response = await axios.post(`/api/user/vendor_branches/name/${val}`)
+    vendor_branches.value = response.data
+    loadPermissions.value = false
+  }catch (e) {
+    loadPermissions.value = false
+  }
+})
+watch(search,() => {
+  getPermissions()
+})
+const getPermissions = debounce(async ()=> {
+  try {
+    let response = await axios.post(`/api/user/vendors/name`)
+    console.log(response)
+    permissions.value = response.data
+  }catch (e) {
+  }
 },1000)
+
 
 onMounted(async () => {
   await getData()
@@ -478,9 +565,9 @@ onMounted(async () => {
             <th scope="col">
               STATUS
             </th>
-            <th scope="col" >
-              SUBMITTED DATA
-            </th>
+<!--            <th scope="col" >-->
+<!--              SUBMITTED DATA-->
+<!--            </th>-->
             <th scope="col" >
               PROFORMA INVOICE
             </th>
@@ -532,7 +619,7 @@ onMounted(async () => {
             </td>
             <td class="">
               <div >
-                {{invoice.shop}}
+                {{invoice.branch}}
               </div>
             </td>
             <td class="">
@@ -541,9 +628,9 @@ onMounted(async () => {
             <td class="">
               {{invoice.status.toUpperCase()}}
             </td>
-            <td class="">
-             <router-link :to="{name:'view-invoice',query:{id:invoice.id}}">view</router-link>
-            </td>
+<!--            <td class="">-->
+<!--             <router-link :to="{name:'view-invoice',query:{id:invoice.id}}">view</router-link>-->
+<!--            </td>-->
             <td class="">
               <div class="">
                 <a class="d-block" v-for="proforma in invoice.proforma" target="_blank" :href="proforma.proforma">{{proforma.name}}</a>
@@ -567,15 +654,18 @@ onMounted(async () => {
                   <br>
                   <a target="_blank" :href="invoice.invoice[0].delivery_note">DELIVERY NOTE</a>
                 </div>
+              <div v-else>
+                <a href="#" class="d-block cursor-pointer2" @click.prevent="showData(invoice.id)" >Upload Document</a>
+              </div>
             </td>
             <td>
               <div v-if="invoice.status == 'draft'">
                 <IconBtn @click.prevent="show(invoice.id)" >
                   <VIcon icon="mdi-edit-outline" />
                 </IconBtn>
-                <IconBtn @click.prevent="deleteInvoiceDate(invoice.id)" >
-                  <VIcon icon="mdi-delete-outline" />
-                </IconBtn>
+<!--                <IconBtn @click.prevent="deleteInvoiceDate(invoice.id)" >-->
+<!--                  <VIcon icon="mdi-delete-outline" />-->
+<!--                </IconBtn>-->
               </div>
               <div v-else-if="invoice.status == 'rejected'">
                 <IconBtn >
@@ -675,12 +765,13 @@ onMounted(async () => {
             <VCol
               cols="6"
             >
-              <VTextField
+              <VSelect
+                density="compact"
+                :loading="loadPermissions"
+                label="Vendor Branch"
+                :items="vendor_branches"
                 v-model="form.branch"
-                :readonly="processing"
-                label="Branch"
-                @input="clearErrors('branch')"
-                :class="{'v-field--error': errors?.branch}"
+                class="invoice-list-actions"
               />
               <small style="color: #ff4c20" v-if="errors.branch">{{errors.branch[0]}}</small>
             </VCol>
@@ -691,7 +782,7 @@ onMounted(async () => {
                 type="number"
                 v-model="form.phone_number"
                 :readonly="processing"
-                label="Phone Number"
+                label="Staff Phone Number"
                 @input="clearErrors('phone_number')"
                 :class="{'v-field--error': errors?.phone_number}"
               />
@@ -704,7 +795,7 @@ onMounted(async () => {
                   <VTextField
                     v-model="pro.name"
                     :readonly="processing"
-                    label="Proforma Invoice Name"
+                    label="Proforma Invoice Number"
                     @input="clearErrors(`proforma.${index}.name`)"
                     :class="errors ? errors[`proforma.${index}.name`] ? 'v-field--error': '' : ''"
                   />
@@ -797,7 +888,7 @@ onMounted(async () => {
             :loading="processing"
             color="success"
           >
-            Save
+            send
           </VBtn>
         </VCardActions>
       </VCard>
@@ -819,6 +910,32 @@ onMounted(async () => {
 
         <VCardText>
           <VRow>
+            <VCol
+              cols="12"
+            >
+              <VTextField
+                type="text"
+                v-model="ed_form.invoice_number"
+                :readonly="ed_processing"
+                label="Invoice Number"
+                @input="clearError('invoice_number')"
+                :class="{'v-field--error': error?.invoice_number}"
+              />
+              <small style="color: #ff4c20" v-if="error.invoice_number">{{error.invoice_number[0]}}</small>
+            </VCol>
+            <VCol
+              cols="12"
+            >
+              <VTextField
+                type="date"
+                v-model="ed_form.pick_up_date"
+                :readonly="ed_processing"
+                label="Pick Up Date"
+                @input="clearError('pick_up_date')"
+                :class="{'v-field--error': error?.pick_up_date}"
+              />
+              <small style="color: #ff4c20" v-if="error.pick_up_date">{{error.pick_up_date[0]}}</small>
+            </VCol>
             <VCol
               cols="12"
             >
@@ -914,14 +1031,15 @@ onMounted(async () => {
             <VCol
               cols="6"
             >
-              <VTextField
+              <VSelect
+                density="compact"
+                :loading="loadPermissions"
+                label="Vendor Branch"
+                :items="vendor_branches"
                 v-model="updatedForm.branch"
-                :readonly="processing"
-                label="Branch"
-                @input="clearUpdatedError('branch')"
-                :class="{'v-field--error': updateErrors?.branch}"
+                class="invoice-list-actions"
               />
-              <small style="color: #ff4c20" v-if="updateErrors.branch">{{errors.updateErrors[0]}}</small>
+              <small style="color: #ff4c20" v-if="updateErrors.branch">{{updateErrors.branch[0]}}</small>
             </VCol>
             <VCol
               cols="6"
@@ -955,7 +1073,7 @@ onMounted(async () => {
                     @change="getEditedDoc($event,index)"
                     type="file"
                     :readonly="processing"
-                    label="Proforma Invoice"
+                    label="Proforma Invoice Number"
                     @input="clearUpdatedError(`proforma.${index}.proforma`)"
                     :class="errors ? updateErrors[`proforma.${index}.proforma`] ? 'v-field--error': '' : ''"
                   />
@@ -1036,7 +1154,7 @@ onMounted(async () => {
             :loading="processing"
             color="success"
           >
-            Save
+            send
           </VBtn>
         </VCardActions>
       </VCard>

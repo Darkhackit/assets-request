@@ -2,9 +2,20 @@
 import avatar1 from '@images/avatars/avatar-1.png'
 import axiosIns from "@axios";
 import {useRouter} from "vue-router";
+import {ref} from "vue";
+import axios from "@axios";
 
 const user = JSON.parse(window.localStorage.getItem('userData'))
 const router = useRouter()
+const addModal = ref(false)
+const errors = ref([])
+const processing = ref(false)
+
+const form = ref({
+  current_password:"",
+  password:"",
+  password_confirmation:"",
+})
 const logout = async () => {
   try {
     await axiosIns.post("/api/user/logout")
@@ -16,6 +27,23 @@ const logout = async () => {
     console.log(e)
   }
 }
+const clearErrors = (field) => {
+  delete errors.value[field]
+}
+
+const addData = async () => {
+  try {
+    processing.value = true
+    await axios.post(`/api/user/employee/changePassword`,form.value)
+    addModal.value = false
+    processing.value = false
+  }catch (e) {
+    errors.value = e.response.data.errors
+    processing.value = false
+  }
+}
+
+
 </script>
 
 <template>
@@ -72,7 +100,7 @@ const logout = async () => {
           <VDivider class="my-2" />
 
           <!-- 👉 Settings -->
-          <VListItem link>
+          <VListItem link @click.prevent="addModal = true">
             <template #prepend>
               <VIcon
                 class="me-2"
@@ -81,7 +109,9 @@ const logout = async () => {
               />
             </template>
 
-            <VListItemTitle>Settings</VListItemTitle>
+            <VListItemTitle>
+              Change Password
+            </VListItemTitle>
           </VListItem>
 
 
@@ -106,4 +136,83 @@ const logout = async () => {
       <!-- !SECTION -->
     </VAvatar>
   </VBadge>
+
+  <!--   add data-->
+  <VDialog
+    v-model="addModal"
+    persistent
+    max-width="600"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Change Password">
+      <DialogCloseBtn
+        variant="text"
+        size="small"
+        @click="addModal = false"
+      />
+
+      <VCardText>
+        <VRow>
+          <VCol
+            cols="12"
+          >
+            <VTextField
+              type="password"
+              v-model="form.current_password"
+              :readonly="processing"
+              label="Curent Password"
+              @input="clearErrors('current_password')"
+              :class="{'v-field--error': errors?.current_password}"
+            />
+            <small style="color: #ff4c20" v-if="errors.current_password">{{errors.current_password[0]}}</small>
+          </VCol>
+          <VCol
+            cols="12"
+          >
+            <VTextField
+              type="password"
+              v-model="form.password"
+              :readonly="processing"
+              label="Password"
+              @input="clearErrors('password')"
+              :class="{'v-field--error': errors?.password}"
+            />
+            <small style="color: #ff4c20" v-if="errors.password">{{errors.password[0]}}</small>
+          </VCol>
+          <VCol
+            cols="12"
+          >
+            <VTextField
+              type="password"
+              v-model="form.password_confirmation"
+              :readonly="processing"
+              label="Password Confirmattion"
+              @input="clearErrors('password_confirmation')"
+              :class="{'v-field--error': errors?.password_confirmation}"
+            />
+            <small style="color: #ff4c20" v-if="errors.password_confirmation">{{errors.password_confirmation[0]}}</small>
+          </VCol>
+        </VRow>
+      </VCardText>
+
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="error"
+          @click="addModal = false"
+        >
+          Close
+        </VBtn>
+        <VBtn
+          @click.prevent="addData"
+          :disabled="processing"
+          :loading="processing"
+          color="success"
+        >
+          Save
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+  <!--   end data-->
 </template>

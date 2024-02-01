@@ -30,4 +30,8 @@ class Invoice extends Model
     {
         return $this->belongsTo(Vendor::class);
     }
+    public function vendor_branch(): BelongsTo
+    {
+        return $this->belongsTo(VendorBranch::class);
+    }
 }

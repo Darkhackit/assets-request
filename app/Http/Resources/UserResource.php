@@ -113,6 +113,10 @@ class UserResource extends JsonResource
                     "action" => "delete",
                     "subject" => "invoice"
                 ] : [],
+                $this->can('PRINT INVOICE') || $this->can('MANAGE ALL') ? [
+                    "action" => "print",
+                    "subject" => "invoice"
+                ] : [],
             ]
         ];
     }

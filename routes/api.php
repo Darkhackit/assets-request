@@ -7,6 +7,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Permissions\PermissionsController;
 use App\Http\Controllers\Roles\RolesController;
+use App\Http\Controllers\VendorBranchController;
 use App\Http\Controllers\VendorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'guest:api','prefix' => 'auth'],function ($router) {
     Route::post('/login', LoginController::class);
+    Route::post('/employee/resetPassword',[EmployeeController::class,'resetPassword']);
+
 });
 
 Route::group(['middleware' => 'auth:api','prefix' => 'user'],function ($router) {
@@ -41,6 +44,9 @@ Route::group(['middleware' => 'auth:api','prefix' => 'user'],function ($router) 
     Route::patch('/employee/{employee}',[EmployeeController::class,'update']);
     Route::post('/employee/delete',[EmployeeController::class,'delete']);
     Route::get('/employee/name/{val}',[EmployeeController::class,'names']);
+    Route::get('/employee/send_mail/{val}',[EmployeeController::class,'send_mail']);
+    Route::get('/employee/sendAll',[EmployeeController::class,'sendAll']);
+    Route::post('/employee/changePassword',[EmployeeController::class,'changePassword']);
 
     Route::post('/send-invoice',[InvoiceController::class,'create']);
     Route::get('/send-invoice',[InvoiceController::class,'index']);
@@ -57,4 +63,11 @@ Route::group(['middleware' => 'auth:api','prefix' => 'user'],function ($router) 
     Route::patch('/vendors/{vendor}',[VendorController::class,'update']);
     Route::post('/vendors/delete',[VendorController::class,'delete']);
     Route::post('/vendors/name',[VendorController::class,'names']);
+
+    Route::post('/vendor_branches',[VendorBranchController::class,'create']);
+    Route::get('/vendor_branches',[VendorBranchController::class,'index']);
+    Route::get('/vendor_branches/{vendorBranch}',[VendorBranchController::class,'show']);
+    Route::patch('/vendor_branches/{vendorBranch}',[VendorBranchController::class,'update']);
+    Route::post('/vendor_branches/delete',[VendorBranchController::class,'delete']);
+    Route::post('/vendor_branches/name/{val}',[VendorBranchController::class,'names']);
 });

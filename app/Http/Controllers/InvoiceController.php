@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ApprovedInvoiceMail;
+use App\Mail\MailToAMC;
+use App\Mail\MailToRequester;
 use App\Mail\RejectInvoiceMail;
 use App\Models\Invoice;
 use App\Models\Item;
 use App\Models\Proforma;
 use App\Models\Vendor;
+use App\Models\VendorBranch;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,7 +28,7 @@ class InvoiceController extends Controller
                              $query->where('item_code',$search);
                              $query->orWhere('item_name',$search);
                          })
-                         ->latest()
+                         ->latest("updated_at")
                          ->paginate(\request('perPage'))
                          ->through(fn($invoice) => [
                              'id' => $invoice->id,
@@ -37,7 +40,7 @@ class InvoiceController extends Controller
                              'total' => number_format(collect($invoice->items)->reduce(function ($a , $b) {
                                  return $a + ((double)$b->quantity * (double)$b->price);
                              }),2),
-                             'branch' => $invoice->branch,
+                             'branch' => $invoice->vendor_branch?->name,
                              'vendor' => $invoice->vendor?->name,
                              'status' => $invoice->status,
                              "invoice" => $invoice->documents,
@@ -55,7 +58,7 @@ class InvoiceController extends Controller
             'branch' => ['required'],
             'proforma' => ['required','array'],
             'proforma.*.name' => ['required'],
-            'proforma.*.proforma' => ['required'],
+            'proforma.*.proforma' => ['required','mimes:jpeg,png,jpg,pdf'],
             'vendor' => ['required'],
             'items' => ['required','array'],
             'items.*.name' => ['required'],
@@ -68,10 +71,12 @@ class InvoiceController extends Controller
         try {
 
             $vendor = Vendor::query()->where('name',$request->vendor)->first();
+            $vendor_branch =  $vendor->vendor_branches->where('name',$request->branch)->first();
             $invoice = new Invoice();
-            $invoice->branch = $request->branch;
+            $invoice->vendor_branch_id = $vendor_branch->id;
             $invoice->status = $request->status;
             $invoice->user_id = auth()->id();
+            $invoice->proforma_invoice = auth()->id();
             $invoice->phone_number = $request->phone_number;
             $invoice->vendor_id = $vendor->id;
             $invoice->total = collect($request->items)->reduce(function ($c, $a) {
@@ -101,9 +106,13 @@ class InvoiceController extends Controller
                 $i->user_id = auth()->id();
                 $i->save();
             }
+            if ($invoice->status == "pending") {
+                Mail::to(auth()->user()->email)->send(new MailToRequester($invoice));
+//            Mail::to('amc@primeinsuranceghana.com')->send(new MailToAMC($invoice));
+            }
             DB::commit();
 
-            return  response()->json($invoice);
+            return  response()->json(['success' => true]);
 
         }catch (\Exception $exception) {
             DB::rollBack();
@@ -115,17 +124,17 @@ class InvoiceController extends Controller
 
     public function getAllAssets(): JsonResponse
     {
-        $from = \request('from') ? Carbon::createFromDate(\request('from')) : now()->startOfMonth();
+        $from = \request('from') ? Carbon::createFromDate(\request('from')) : now()->startOfYear();
         $to = \request('to') ? Carbon::createFromDate(\request('to')) : now()->addMonths(3)->endOfMonth();
         $s = \request('q');
         return response()->json(Invoice::with('user')
             ->where('status','!=',"draft")
             ->whereHas('user',function ($query) use($s) {
-                $query->where('name','ILIKE',"%{$s}%");
-                $query->orWhere('email','ILIKE',"%{$s}%");
+                $query->where('name','like',"%{$s}%");
+                $query->orWhere('email','like',"%{$s}%");
             })
             ->when(\request('q'),function ($query,$search) {
-                $query->where('id','ILIKE',"%{$search}%");
+                $query->where('id','like',"%{$search}%");
             })
             ->when(\request('status'),function ($query,$status) {
                 if ($status == "ch") {
@@ -146,7 +155,7 @@ class InvoiceController extends Controller
                 $query->where('item_code',$search);
                 $query->orWhere('item_name',$search);
             })
-            ->latest()
+            ->latest("updated_at")
             ->whereBetween('created_at',[$from,$to])
             ->paginate(\request('perPage'))
             ->through(fn($invoice) => [
@@ -159,7 +168,7 @@ class InvoiceController extends Controller
                     'proforma' => $proforma->proforma,
                 ]),
                 'item_description' => $invoice->branch,
-                'branch' => $invoice->branch,
+                'branch' => $invoice->vendor_branch?->name,
                 'total' => number_format(collect($invoice->items)->reduce(function ($a , $b) {
                     return $a + ((double)$b->quantity * (double)$b->price);
                 }),2),
@@ -184,7 +193,7 @@ class InvoiceController extends Controller
             'phone_number' => $invoice->phone_number ,
             'date' => $invoice->updated_at->format('d/m/Y'),
             "vendor" => $invoice->vendor?->name,
-            "branch" => $invoice->branch,
+            "branch" => $invoice->vendor_branch?->name,
             "proforma" => $invoice->proformas,
         ]);
     }
@@ -205,6 +214,7 @@ class InvoiceController extends Controller
         }
         $invoice->status = $request->status;
         $invoice->comments = $request->comments;
+        $invoice->timestamps = false;
         $invoice->update();
         if ($request->status == "rejected") {
 
@@ -223,11 +233,11 @@ class InvoiceController extends Controller
         $s = \request('q');
         return response()->json(Invoice::with('user')
             ->whereHas('user',function ($query) use($s) {
-                $query->where('name','ILIKE',"%{$s}%");
-                $query->orWhere('email','ILIKE',"%{$s}%");
+                $query->where('name','like',"%{$s}%");
+                $query->orWhere('email','like',"%{$s}%");
             })
             ->when(\request('q'),function ($query,$search) {
-                $query->where('id','ILIKE',"%{$search}%");
+                $query->where('id','like',"%{$search}%");
             })
             ->when(\request('status'),function ($query,$status) {
                 if ($status == "ch") {
@@ -252,16 +262,17 @@ class InvoiceController extends Controller
             ->whereBetween('created_at',[$from,$to])
             ->get()
             ->map(fn($invoice) => [
-                'ID' => $invoice->id,
-                'SHOP' => $invoice->branch,
-                'USER' => $invoice->user->name,
-                'ITEM_DESCRIPTION' => $invoice->branch,
-                'DISCOUNTED_AMOUNTED' => $invoice->discounted_amount,
-                'BRANCH' => $invoice->branch,
-                'TOTAL' => number_format(collect($invoice->items)->reduce(function ($a , $b) {
+                'REQUEST DATE' => $invoice->updated_at->format('d-m-Y'),
+                'STAFF NAME' => $invoice->user->name,
+                'ITEM CODE' => collect($invoice->items)->implode("code",","),
+                'DESCRIPTION' => collect($invoice->items)->implode("name",","),
+                'PROFORMA TOTAL' => number_format(collect($invoice->items)->reduce(function ($a , $b) {
                     return $a + ((double)$b->quantity * (double)$b->price);
                 }),2),
-                "STATUS" => $invoice->status
+                "STATUS" => $invoice->status,
+                "PICK-UP DATE" => $invoice->documents->first()?->pick_up_date,
+                'DISCOUNTED_AMOUNTED' => $invoice->discounted_amount,
+                "INVOICE NO." => $invoice->documents->first()?->invoice_number,
             ])
         );
     }
@@ -293,7 +304,8 @@ class InvoiceController extends Controller
         try {
 
             $vendor = Vendor::query()->where('name',$request->vendor)->first();
-            $invoice->branch = $request->branch;
+            $vendor_branch =  $vendor->vendor_branches->where('name',$request->branch)->first();
+            $invoice->vendor_branch_id = $vendor_branch->id;
             $invoice->status = $request->status;
             $invoice->phone_number = $request->phone_number;
             $invoice->vendor_id = $vendor->id;
@@ -341,8 +353,13 @@ class InvoiceController extends Controller
                 $i->user_id = auth()->id();
                 $i->save();
             }
-            DB::commit();
 
+            if ($invoice->status == "pending") {
+                Mail::to(auth()->user()->email)->send(new MailToRequester($invoice));
+//            Mail::to('amc@primeinsuranceghana.com')->send(new MailToAMC($invoice));
+            }
+
+            DB::commit();
             return  response()->json($invoice);
 
         }catch (\Exception $exception) {

@@ -1,8 +1,8 @@
 <script setup>
 import {ref,watch} from "vue";
+import axio from "@axios";
+import axiosIns from "@axios";
 import axios from "@axios";
-import {debounce} from 'lodash'
-
 
 const overlay = ref(false)
 const searchQuery = ref('')
@@ -19,6 +19,7 @@ const statusDetails = ref("")
 const addModal = ref(false)
 const updateModal = ref(false)
 const errors = ref([])
+const vendors = ref([])
 const error = ref([])
 const firstIndex = ref(0)
 const selectAction = ref("")
@@ -26,23 +27,18 @@ const page = ref(1)
 const links = ref(0)
 const lastIndex = ref(0)
 const exportData = ref("")
-const search = ref()
-const loadPermissions = ref(false)
-const permissions = ref([])
 const form = ref({
   name:'',
-  password:'',
-  email:'',
-  password_confirmation:'',
-  role:[]
+  vendor:'',
+  active:true,
+  address:''
 })
 const table = ref(null)
 const ed_form = ref({
   name:'',
-  password:'',
-  email:'',
-  password_confirmation:'',
-  role:[],
+  vendor:'',
+  active:true,
+  address:'',
   id:''
 })
 const processing = ref(false)
@@ -50,16 +46,12 @@ const ed_processing = ref(false)
 const addData = async () => {
   processing.value = true
   try {
-    await axios.post(`/api/user/employee`,form.value)
+    await axiosIns.post(`/api/user/vendor_branches`,form.value)
     form.value.name = ""
-    form.value.email = ""
-    form.value.password = ""
-    form.value.password_confirmation = ""
-    form.value.role = []
     processing.value = false
     addModal.value = false
     showStatus.value = true
-    statusDetails.value = "Employee added Successfully"
+    statusDetails.value = "Permission added Successfully"
     await getData()
   }catch (e) {
     if (e.response.status === 422) {
@@ -87,15 +79,15 @@ const getData = async () => {
   }
   try {
     overlay.value = true
-    let response = await axios.get('/api/user/employee', { params })
+    let response = await axiosIns.get('/api/user/vendor_branches', { params })
     overlay.value = false
-    invoices.value = response.data.employees.data
-    totalPage.value = response.data.employees.total
-    totalInvoices.value = response.data.employees.total
-    currentPage.value = response.data.employees.current_page
-    firstIndex.value = response.data.employees.from
-    lastIndex.value = response.data.employees.last_page
-    links.value = response.data.employees.links.length
+    invoices.value = response.data.vendors.data
+    totalPage.value = response.data.vendors.total
+    totalInvoices.value = response.data.vendors.total
+    currentPage.value = response.data.vendors.current_page
+    firstIndex.value = response.data.vendors.from
+    lastIndex.value = response.data.vendors.last_page
+    links.value = response.data.vendors.links.length
   }catch (e) {
     console.log(e.response)
     overlay.value = false
@@ -112,10 +104,11 @@ watch(() => rowPerPage.value,async () => {
 const showData = async (id) => {
   try {
     overlay.value = true
-    let response = await axios.get(`/api/user/employee/${id}`)
+    let response = await axiosIns.get(`/api/user/vendor_branches/${id}`)
     ed_form.value.name = response.data.name
-    ed_form.value.email = response.data.email
-    ed_form.value.role = response.data.role
+    ed_form.value.vendor = response.data.vendor
+    ed_form.value.address = response.data.address
+    ed_form.value.active = response.data.active
     ed_form.value.id = response.data.id
     updateModal.value = true
     console.log(response)
@@ -125,44 +118,15 @@ const showData = async (id) => {
     console.log(e.response)
   }
 }
-const sendPassword = async (id) => {
-  try {
-    overlay.value = true
-    await axios.get(`/api/user/employee/send_mail/${id}`)
-    showStatus.value = true
-    statusDetails.value = "Email Sent Successfully"
-    overlay.value = false
-    await getData()
-    selectAction.value = ""
-  }catch (e) {
-    selectAction.value = ""
-    overlay.value = false
-  }
-}
-const sendMail = async () => {
-  try {
-    overlay.value = true
-    await axios.get(`/api/user/employee/sendAll`)
-    showStatus.value = true
-    statusDetails.value = "Email Sent Successfully"
-    overlay.value = false
-    await getData()
-    selectAction.value = ""
-  }catch (e) {
-    selectAction.value = ""
-    overlay.value = false
-  }
-}
 
 const updateData = async () => {
   try {
-    await axios.patch(`/api/user/employee/${ed_form.value.id}`,ed_form.value)
+    await axiosIns.patch(`/api/user/vendor_branches/${ed_form.value.id}`,ed_form.value)
     ed_form.value.name = ""
     ed_form.value.id = ""
-    ed_form.value.permissions = []
     updateModal.value = false
     showStatus.value = true
-    statusDetails.value = "Employee updated Successfully"
+    statusDetails.value = "Vendor updated Successfully"
     await getData()
   }catch (e) {
     console.log(e.response)
@@ -180,9 +144,9 @@ watch(() => selectAction.value, async () => {
 })
 const deleteDate = async () => {
   try {
-    await axios.post(`/api/user/employee/delete`,{id:selectedRows.value})
+    await axiosIns.post(`/api/user/vendor_branches/delete`,{id:selectedRows.value})
     showStatus.value = true
-    statusDetails.value = "Role Deleted Successfully"
+    statusDetails.value = "Permission Deleted Successfully"
     await getData()
     selectAction.value = ""
   }catch (e) {
@@ -206,12 +170,22 @@ const selectUnselectAll = () => {
 const columns = [
   {title: "ID", dataKey: "id"},
   {title: "Name", dataKey: "name"},
-  {title: "Permissions", dataKey: "permissions"},
+  {title: "Roles", dataKey: "roles"},
   {title: "Users", dataKey: "users"},
 ];
 
 
-// 👉 watch if checkbox array is empty all checkbox should be unchecked
+watch(exportData, () => {
+  if (exportData.value === "PDF") {
+    exportPdf()
+  }
+  if(exportData.value === "CSV") {
+    exportCsv()
+  }
+}, { deep: true })
+
+
+// 👉 watch if checkbox array is empty all checkbox should be uncheck
 watch(selectedRows, () => {
   if (!selectedRows.value.length)
     selectAllInvoice.value = false
@@ -227,25 +201,19 @@ const addRemoveIndividualCheckbox = checkID => {
     selectAllInvoice.value = true
   }
 }
-watch(search,() => {
-  getPermissions()
-})
-const getPermissions = debounce(async ()=> {
-  if (search.value === "") return
-  loadPermissions.value = true
+const getVendors = async ()=> {
   try {
-    let response = await axios.get(`/api/user/role/name/${search.value}`)
+    let response = await axios.post(`/api/user/vendors/name`)
     console.log(response)
-    permissions.value = response.data
-    loadPermissions.value = false
+    vendors.value = response.data
   }catch (e) {
-    loadPermissions.value = false
   }
-},1000)
-
+}
 onMounted(async () => {
   await getData()
+  await getVendors()
 })
+
 </script>
 
 <template>
@@ -256,7 +224,7 @@ onMounted(async () => {
       <VCard id="invoice-list">
         <VCardText class="d-flex align-center flex-wrap gap-4">
           <!-- 👉 Actions  -->
-          <div class="me-3" v-if="$can('delete','employee')">
+          <div class="me-3" v-if="$can('delete','vendor')" >
             <VSelect
               density="compact"
               label="Actions"
@@ -266,37 +234,30 @@ onMounted(async () => {
               :disabled="!selectedRows.length"
             />
           </div>
-
           <VSpacer />
 
           <div class="d-flex align-center flex-wrap gap-4">
             <!-- 👉 Search  -->
-            <div class="invoice-list-search" v-if="$can('list','employee')" >
+            <div class="invoice-list-search" v-if="$can('list','vendor')" >
               <VTextField
                 v-model="searchQuery"
-                placeholder="Search Employee"
+                placeholder="Search Vendor"
                 density="compact"
               />
             </div>
 
             <!-- 👉 Create invoice -->
-            <VBtn v-if="$can('list','employee')"
-              prepend-icon="mdi-search"
-              @click.prevent="getData"
+            <VBtn v-if="$can('list','vendor')"
+                  prepend-icon="mdi-search"
+                  @click.prevent="getData"
             >
               Search
             </VBtn>
-            <VBtn v-if="$can('add','employee')"
-              @click.prevent="addModal = true"
-              prepend-icon="mdi-plus"
+            <VBtn v-if="$can('add','vendor')"
+                  @click.prevent="addModal = true"
+                  prepend-icon="mdi-plus"
             >
-              Create Employee
-            </VBtn>
-            <VBtn v-if="$can('add','employee')"
-                  @click.prevent="sendMail"
-                  prepend-icon="mdi-email"
-            >
-              send credentials
+              Create Branch
             </VBtn>
           </div>
         </VCardText>
@@ -330,12 +291,23 @@ onMounted(async () => {
             <th
               scope="col"
             >
-              EMAIL
+              ADDRESS
+            </th>
+            <th
+              scope="col"
+            >
+              VENDOR
             </th>
             <th scope="col">
-              ROLES
+              ACTIVE
             </th>
-            <th scope="col" >
+            <th scope="col">
+              CREATED BY
+            </th>
+            <th scope="col">
+              UPDATED BY
+            </th>
+            <th scope="col" v-if="$can('update','permission')">
               ACTIONS
             </th>
           </tr>
@@ -370,14 +342,32 @@ onMounted(async () => {
 
             <!-- 👉 Client Avatar and Email -->
             <td>
-              {{invoice.email}}
+              <div>
+                {{invoice.address}}
+              </div>
+            </td>
+            <td>
+              <div>
+                {{invoice.vendor}}
+              </div>
+            </td>
+            <td>
+              <div>
+                {{invoice.active ? 'true' : 'false'}}
+              </div>
+            </td>
+            <td>
+              <div>
+                {{invoice.user}}
+              </div>
             </td>
 
             <!-- 👉 total -->
             <td class="">
-              <div >
-                {{invoice.role}}
+              <div>
+                {{invoice.updated_by}}
               </div>
+              {{}}
             </td>
 
             <!-- 👉 Actions -->
@@ -386,11 +376,8 @@ onMounted(async () => {
               <!--               <VIcon icon="mdi-delete-outline" />-->
               <!--             </IconBtn>-->
 
-              <IconBtn v-if="$can('add','employee')" @click.prevent="showData(invoice.id)" >
+              <IconBtn  @click.prevent="showData(invoice.id)" >
                 <VIcon icon="mdi-edit-outline" />
-              </IconBtn>
-              <IconBtn v-if="$can('add','employee')" @click.prevent="sendPassword(invoice.id)" >
-                <VIcon icon="mdi-email-outline" />
               </IconBtn>
             </td>
           </tr>
@@ -455,7 +442,7 @@ onMounted(async () => {
       max-width="600"
     >
       <!-- Dialog Content -->
-      <VCard title="Add Employee">
+      <VCard title="Add Vendor Branch">
         <DialogCloseBtn
           variant="text"
           size="small"
@@ -480,56 +467,40 @@ onMounted(async () => {
             <VCol
               cols="12"
             >
-              <VTextField
+              <VSelect
+                density="compact"
+                label="Vendor"
+                :items="vendors"
+                v-model="form.vendor"
+                class="invoice-list-actions"
+              />
+              <small style="color: #ff4c20" v-if="errors.vendor">{{errors.vendor[0]}}</small>
+            </VCol>
+            <VCol
+              cols="12"
+            >
+              <VTextarea
 
-                v-model="form.email"
+                v-model="form.address"
                 :readonly="processing"
-                label="Email"
-                @input="clearErrors('email')"
-                :class="{'v-field--error': errors?.email}"
+                label="Address"
+                @input="clearErrors('address')"
+                :class="{'v-field--error': errors?.address}"
               />
-              <small style="color: #ff4c20" v-if="errors.name">{{errors.email[0]}}</small>
-            </VCol>
-            <VCol cols="12">
-              <VAutocomplete
-                v-model="form.role"
-                :readonly="processing"
-                v-model:search="search"
-                :loading="loadPermissions"
-                label="Roles"
-                :items="permissions"
-                @input="clearErrors('permissions')"
-                :class="{'v-field--error': errors?.role}"
-                chips
-                closable-chips
-              />
-              <small style="color: #ff4c20" v-if="errors.role">{{errors.role[0]}}</small>
+              <small style="color: #ff4c20" v-if="errors.address">{{errors.address[0]}}</small>
             </VCol>
             <VCol
               cols="12"
             >
-              <VTextField
-                type="password"
-                v-model="form.password"
+              <VCheckbox
+
+                v-model="form.active"
                 :readonly="processing"
-                label="Password"
-                @input="clearErrors('password')"
-                :class="{'v-field--error': errors?.password}"
+                label="Active"
+                @input="clearErrors('active')"
+                :class="{'v-field--error': errors?.active}"
               />
-              <small style="color: #ff4c20" v-if="errors.password">{{errors.password[0]}}</small>
-            </VCol>
-            <VCol
-              cols="12"
-            >
-              <VTextField
-                type="password"
-                v-model="form.password_confirmation"
-                :readonly="processing"
-                label="Password Confirmattion"
-                @input="clearErrors('password_confirmation')"
-                :class="{'v-field--error': errors?.password_confirmation}"
-              />
-              <small style="color: #ff4c20" v-if="errors.password_confirmation">{{errors.password_confirmation[0]}}</small>
+              <small style="color: #ff4c20" v-if="errors.active">{{errors.active[0]}}</small>
             </VCol>
           </VRow>
         </VCardText>
@@ -561,7 +532,7 @@ onMounted(async () => {
       max-width="600"
     >
       <!-- Dialog Content -->
-      <VCard title="Update Employee">
+      <VCard title="Update Vendor">
         <DialogCloseBtn
           variant="text"
           size="small"
@@ -574,8 +545,9 @@ onMounted(async () => {
               cols="12"
             >
               <VTextField
+
                 v-model="ed_form.name"
-                :readonly="ed_processing"
+                :readonly="processing"
                 label="Name"
                 @input="clearError('name')"
                 :class="{'v-field--error': error?.name}"
@@ -585,30 +557,40 @@ onMounted(async () => {
             <VCol
               cols="12"
             >
-              <VTextField
-
-                v-model="ed_form.email"
-                :readonly="processing"
-                label="Email"
-                @input="clearError('email')"
-                :class="{'v-field--error': error?.email}"
+              <VSelect
+                density="compact"
+                label="Vendor"
+                :items="vendors"
+                v-model="ed_form.vendor"
+                class="invoice-list-actions"
               />
-              <small style="color: #ff4c20" v-if="error.name">{{error.email[0]}}</small>
+              <small style="color: #ff4c20" v-if="errors.vendor">{{errors.vendor[0]}}</small>
             </VCol>
-            <VCol cols="12">
-              <VAutocomplete
-                v-model="ed_form.role"
+            <VCol
+              cols="12"
+            >
+              <VTextarea
+
+                v-model="ed_form.address"
                 :readonly="processing"
-                v-model:search="search"
-                :loading="loadPermissions"
-                label="Roles"
-                :items="permissions"
-                @input="clearError('role')"
-                :class="{'v-field--error': error?.role}"
-                chips
-                closable-chips
+                label="Address"
+                @input="clearError('address')"
+                :class="{'v-field--error': error?.address}"
               />
-              <small style="color: #ff4c20" v-if="error.role">{{error.role[0]}}</small>
+              <small style="color: #ff4c20" v-if="error.name">{{error.address[0]}}</small>
+            </VCol>
+            <VCol
+              cols="12"
+            >
+              <VCheckbox
+
+                v-model="ed_form.active"
+                :readonly="processing"
+                label="Active"
+                @input="clearError('active')"
+                :class="{'v-field--error': error?.active}"
+              />
+              <small style="color: #ff4c20" v-if="error.name">{{error.active[0]}}</small>
             </VCol>
           </VRow>
         </VCardText>
@@ -667,7 +649,7 @@ onMounted(async () => {
 }
 </style>
 <route lang="yaml">
-  meta:
-    action: list
-    subject: employee
+meta:
+  action: list
+  subject: vendor
 </route>

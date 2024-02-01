@@ -281,14 +281,14 @@ onMounted(async () => {
 
             <!-- 👉 Create invoice -->
             <VBtn v-if="$can('list','employee')"
-              prepend-icon="mdi-search"
-              @click.prevent="getData"
+                  prepend-icon="mdi-search"
+                  @click.prevent="getData"
             >
               Search
             </VBtn>
             <VBtn v-if="$can('add','employee')"
-              @click.prevent="addModal = true"
-              prepend-icon="mdi-plus"
+                  @click.prevent="addModal = true"
+                  prepend-icon="mdi-plus"
             >
               Create Employee
             </VBtn>
@@ -386,10 +386,10 @@ onMounted(async () => {
               <!--               <VIcon icon="mdi-delete-outline" />-->
               <!--             </IconBtn>-->
 
-              <IconBtn v-if="$can('add','employee')" @click.prevent="showData(invoice.id)" >
+              <IconBtn @click.prevent="showData(invoice.id)" >
                 <VIcon icon="mdi-edit-outline" />
               </IconBtn>
-              <IconBtn v-if="$can('add','employee')" @click.prevent="sendPassword(invoice.id)" >
+              <IconBtn @click.prevent="sendPassword(invoice.id)" >
                 <VIcon icon="mdi-email-outline" />
               </IconBtn>
             </td>
@@ -667,7 +667,7 @@ onMounted(async () => {
 }
 </style>
 <route lang="yaml">
-  meta:
-    action: list
-    subject: employee
+meta:
+  action: list
+  subject: employee
 </route>

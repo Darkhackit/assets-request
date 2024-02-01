@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class RejectInvoiceMail extends Mailable
+class MailToAMC extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -28,7 +28,7 @@ class RejectInvoiceMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Response From AMC',
+            subject: "New Request From {$this->invoice->user?->name}",
         );
     }
 
@@ -38,7 +38,7 @@ class RejectInvoiceMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.reject_invoice',
+            markdown: 'email.mail_to_amc',
             with: ['invoice' => $this->invoice]
         );
     }

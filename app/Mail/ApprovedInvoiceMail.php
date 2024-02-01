@@ -28,7 +28,7 @@ class ApprovedInvoiceMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Approved Invoice Mail',
+            subject: 'Response From AMC',
         );
     }
 

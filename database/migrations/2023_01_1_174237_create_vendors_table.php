@@ -16,9 +16,11 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('address')->nullable();
             $table->boolean('active')->default(true);
-            $table->integer('user_id')->nullable();
-            $table->integer('updated_by')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained();
+            $table->unsignedInteger('updated_by')->nullable();
             $table->timestamps();
+
+
         });
     }
 

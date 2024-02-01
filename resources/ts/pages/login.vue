@@ -8,6 +8,8 @@ import { themeConfig } from '@themeConfig'
 import axiosIns from "@axios";
 import {useAppAbility} from "@/plugins/casl/useAppAbility";
 import {useRouter,useRoute} from "vue-router";
+import {ref} from "vue";
+import axios from "@axios";
 
 const form = ref({
   email: '',
@@ -15,17 +17,27 @@ const form = ref({
   remember: false,
 })
 
+const updateForm = ref({
+  email:''
+})
+
 const authV1ThemeLoginMask = useGenerateImageVariant(authV1LoginMaskLight, authV1LoginMaskDark)
 const isPasswordVisible = ref(false)
 const processing = ref(false)
+const addModal = ref(false)
+const ed_processing = ref(false)
 const ability = useAppAbility()
 const router = useRouter()
 const route = useRoute()
 
 const errors = ref([])
+const error = ref([])
 
 const clearErrors = (field: any) => {
   delete errors.value[field]
+}
+const clearError = (field: any) => {
+  delete error.value[field]
 }
 const login = async () => {
   processing.value = true
@@ -50,6 +62,17 @@ const login = async () => {
     processing.value = false
   }
 }
+const addData = async () => {
+  try {
+    ed_processing.value = true
+    await axios.post(`/api/auth/employee/resetPassword`,updateForm.value)
+    addModal.value = false
+    ed_processing.value = false
+  }catch (e) {
+    error.value = e.response.data.errors
+    ed_processing.value = false
+  }
+}
 </script>
 
 <template>
@@ -61,7 +84,7 @@ const login = async () => {
       <VCardItem class="justify-center">
         <template #prepend>
           <div class="me-n2">
-            <VNodeRenderer :nodes="themeConfig.app.logo" />
+            <img src="https://www.primeinsuranceghana.com/img/logo.png">
           </div>
         </template>
 
@@ -72,7 +95,7 @@ const login = async () => {
 
       <VCardText class="pt-2 text-center">
         <h5 class="text-h5 mb-1">
-          <span class="text-capitalize">ASSET FINANCIAL REQUEST</span>
+          <span class="text-capitalize">ASSET FINANCE PORTAL</span>
         </h5>
 
         <p class="mb-0 text-center">
@@ -135,7 +158,7 @@ const login = async () => {
               cols="12"
               class="text-center text-base"
             >
-              <span>New on our platform?</span>
+              <span @click.prevent="addModal = true" class="text-amber cursor-pointer">Forgot Password?</span>
 
             </VCol>
 
@@ -164,6 +187,59 @@ const login = async () => {
       class="d-none d-md-block auth-footer-mask"
     />
   </div>
+
+  <!--   add data-->
+  <VDialog
+    v-model="addModal"
+    persistent
+    max-width="600"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Reset Password">
+      <DialogCloseBtn
+        variant="text"
+        size="small"
+        @click="addModal = false"
+      />
+
+      <VCardText>
+        <VRow>
+          <VCol
+            cols="12"
+          >
+            <VTextField
+              type="email"
+              v-model="updateForm.email"
+              :readonly="ed_processing"
+              label="Email"
+              @input="clearError('email')"
+              :class="{'v-field--error': error?.email}"
+            />
+            <small style="color: #ff4c20" v-if="error.email">{{error.email[0]}}</small>
+          </VCol>
+        </VRow>
+      </VCardText>
+
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="error"
+          @click="addModal = false"
+        >
+          Close
+        </VBtn>
+        <VBtn
+          @click.prevent="addData"
+          :disabled="ed_processing"
+          :loading="ed_processing"
+          color="success"
+        >
+          Reset Password
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+  <!--   end data-->
 </template>
 
 <style lang="scss">

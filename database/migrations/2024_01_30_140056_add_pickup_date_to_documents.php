@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('proformas', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable();
-            $table->string('proforma');
-            $table->foreignId('invoice_id')->constrained();
-            $table->timestamps();
+        Schema::table('documents', function (Blueprint $table) {
+            $table->date('pick_up_date')->nullable();
+            $table->string('invoice_number')->nullable();
         });
     }
 
@@ -25,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('proformas');
+        Schema::table('documents', function (Blueprint $table) {
+            //
+        });
     }
 };

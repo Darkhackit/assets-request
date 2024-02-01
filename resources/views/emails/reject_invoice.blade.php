@@ -1,7 +1,7 @@
 <x-mail::message>
-    Hi #{{$invoice?->user?->name}}
+    Dear #{{$invoice?->user?->name}}
 
-    {{$invoice->comments}}
+    your request has been declined. Contact AMC for further information
 
 Thanks,<br>
 {{ config('app.name') }}

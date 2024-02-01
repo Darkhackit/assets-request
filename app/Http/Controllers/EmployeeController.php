@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendPersonalPassword;
 use App\Models\User;
+use App\Rules\CheckSamePassword;
+use App\Rules\MatchOldPassword;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class EmployeeController extends Controller
@@ -25,8 +31,8 @@ class EmployeeController extends Controller
         return \response()->json([
             'employees' => User::query()
                 ->when(request('q'),function ($query , $search){
-                    $query->where('name','ILIKE', "%{$search}%")
-                        ->orWhere('email','ILIKE', "%{$search}%");
+                    $query->where('name','like', "%{$search}%")
+                        ->orWhere('email','like', "%{$search}%");
                 })
                 ->paginate(\request('perPage'))
                 ->withQueryString()
@@ -153,5 +159,63 @@ class EmployeeController extends Controller
                 'server_error' => $exception->getMessage()
             ]],Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function send_mail($id): JsonResponse
+    {
+        $user = User::query()->where('id',$id)->first();
+        Mail::to($user->email)->send(new SendPersonalPassword($user));
+
+        return \response()->json(['success' => true]);
+    }
+
+    public function sendAll(): void
+    {
+        DB::table('users')->orderBy('id')->chunk(10,function (Collection $users) {
+            foreach ($users as $user) {
+                Mail::to($user->email)->send(new SendPersonalPassword($user));
+            }
+        });
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $this->validate($request,[
+            'current_password' => ['required',new MatchOldPassword()],
+            'password' => ['required','confirmed','min:6',new CheckSamePassword()]
+        ]);
+
+        $request->user()->update([
+            'password' => bcrypt($request->password),
+            'save_password' => $request->password
+        ]);
+
+        return response()->json(['message' => 'password updated']);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $this->validate($request,[
+            'email' => ['required','email','exists:users']
+        ]);
+
+        $password = Str::random(8);
+
+        $user = User::query()->where('email',$request->email)->first();
+        $user->save_password = $password;
+        $user->password = Hash::make($password);
+
+        $user->update();
+
+        Mail::to($user->email)->send(new SendPersonalPassword($user));
+
+        return \response()->json(['success' => true]);
+
     }
 }

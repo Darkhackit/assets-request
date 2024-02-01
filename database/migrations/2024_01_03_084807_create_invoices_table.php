@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id()->from(20033);
-            $table->integer('user_id');
-            $table->integer('vendor_id');
-            $table->string('proforma_invoice')->nullable();
-            $table->string('branch')->nullable();
+            $table->foreignId('user_id')->constrained();
+            $table->foreignId('vendor_id')->constrained();
+            $table->unsignedInteger('proforma_invoice');
+            $table->integer('vendor_branch_id')->nullable();
             $table->enum('status',["rejected","pending","approved","processing","draft"])->default("pending");
             $table->double('total');
             $table->double('discounted_amount')->default(0);

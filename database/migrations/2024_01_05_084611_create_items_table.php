@@ -17,9 +17,10 @@ return new class extends Migration
             $table->string('code');
             $table->double('price');
             $table->integer('quantity');
-            $table->integer('invoice_id');
-            $table->integer('user_id');
+            $table->foreignId('invoice_id')->constrained();
+            $table->foreignId('user_id')->constrained();
             $table->timestamps();
+
         });
     }
 

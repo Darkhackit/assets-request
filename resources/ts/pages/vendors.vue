@@ -330,7 +330,7 @@ onMounted(async () => {
             </td>
             <td>
               <div>
-                {{invoice.active}}
+                {{invoice.active ? 'true' : 'false'}}
               </div>
             </td>
             <td>

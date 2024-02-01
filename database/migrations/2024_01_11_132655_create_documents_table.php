@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('voucher');
             $table->string('delivery_note');
-            $table->integer('invoice_id');
+            $table->foreignId('invoice_id')->constrained();
             $table->timestamps();
         });
     }

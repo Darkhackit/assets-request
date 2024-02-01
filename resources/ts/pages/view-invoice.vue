@@ -24,7 +24,14 @@ const getInvoice = async () => {
   }
 }
 
-// document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+document.addEventListener('keydown',(e) => {
+  if (e.keyCode == 123) {
+    return false
+  }
+})
+
 
 // 👉 Print Invoice
 const printInvoice = () => {
@@ -36,7 +43,9 @@ onMounted(async () => {
 </script>
 
 <template>
+
   <section>
+
     <VRow>
       <VCol
         cols="12"
@@ -56,19 +65,28 @@ onMounted(async () => {
 
                 <!-- 👉 Title -->
                 <h6 class="font-weight-bold text-capitalize text-h6">
-                  Prime Insurance Ghana
+                  Prime Insurance CO. LTD.
                 </h6>
               </div>
 
               <!-- 👉 Address -->
               <p class="mb-0">
-                Office 149, 450 South Brand Brooklyn
+                12th Unit, SU Tower, Castle Road, North Ridge.
               </p>
               <p class="my-2">
-                San Diego County, CA 91905, USA
+                P. O. Box GP 21222, Accra
+              </p>
+              <p class="my-2">
+                Office: 0303 97 6799 | 0303 96 8293
+              </p>
+              <p class="my-2">
+                0302-229062 | 0302-233499
               </p>
               <p class="mb-0">
-                +1 (123) 456 7891, +44 (876) 543 2198
+                Email: info@primeinsuranceghana.com
+              </p>
+              <p class="mb-0">
+                Ghana Post Address: GA-051-9631
               </p>
             </div>
 
@@ -81,19 +99,30 @@ onMounted(async () => {
 
               <!-- 👉 Issue Date -->
               <p class="my-3">
-                <span>Date Issued: </span>
-                <span>{{ new Date(purchasedProducts?.date).toLocaleDateString('en-GB') }}</span>
+                <span class="text-h6">Date Issued: </span>
+                <span class="text-h5">{{ purchasedProducts?.date}}</span>
               </p>
 
               <!-- 👉 Due Date -->
               <p class="mb-0">
-                <span>Name: </span>
-                <span>{{ purchasedProducts?.user }}</span>
+                <span class="text-h6">Name: </span>
+                <span class="text-h5">{{ purchasedProducts?.user }}</span>
               </p>
               <p class="mb-0">
-                <span>Phone Number: </span>
-                <span>{{ purchasedProducts?.phone_number }}</span>
+                <span class="text-h6">Phone Number: </span>
+                <span class="text-h5">{{ purchasedProducts?.phone_number }}</span>
               </p>
+
+              <div class="my-8">
+                <p class="">
+                  <span class="text-h6">Prime R/O:</span>
+                  <span class="text-h6" contenteditable="true">  ..........................</span>
+                </p>
+                <p class="">
+                  <span class="text-h6">Regional Rep:</span>
+                  <span class="text-h6" contenteditable="true">  ...........................</span>
+                </p>
+              </div>
 
             </div>
           </VCardText>
@@ -102,7 +131,6 @@ onMounted(async () => {
           <VDivider />
 
           <!-- 👉 Payment Details -->
-
           <!-- 👉 Table -->
           <VDivider />
 
@@ -110,7 +138,7 @@ onMounted(async () => {
             <thead>
             <tr>
               <th scope="col">
-                ITEM NAME
+                ITEM DESCRIPTION
               </th>
               <th scope="col">
                 ITEM CODE
@@ -216,8 +244,11 @@ onMounted(async () => {
         md="3"
         class="d-print-none"
       >
+        <IconBtn @click.prevent="$router.back()" >
+          <VIcon icon="mdi-close-outline" />
+        </IconBtn>
         <VCard>
-          <VCardText>
+          <VCardText v-if="$can('print','invoice')">
             <!-- 👉 Send Invoice Trigger button -->
 
             <VBtn
@@ -242,6 +273,7 @@ onMounted(async () => {
 </template>
 
 <style lang="scss">
+
 .invoice-preview-table {
   --v-table-row-height: 44px !important;
 }
@@ -293,6 +325,7 @@ onMounted(async () => {
   .v-table__wrapper {
     overflow: hidden !important;
   }
+
 }
 </style>
 <route lang="yaml">

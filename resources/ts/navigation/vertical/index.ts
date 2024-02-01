@@ -11,7 +11,7 @@ export default [
   {
     title: 'Employees',
     to: { name: 'employee' },
-    icon: { icon: 'mdi-file-document-outline' },
+    icon: { icon: 'mdi-users-outline' },
     action: 'list',
     subject: 'employee',
   },
@@ -25,12 +25,19 @@ export default [
   {
     title: 'Vendors',
     to: { name: 'vendors' },
-    icon: { icon: 'mdi-file-document-outline' },
+    icon: { icon: 'mdi-user-outline' },
     action: 'list',
     subject: 'vendor',
   },
   {
-    title: 'Pending Assets',
+    title: 'Vendor Branches',
+    to: { name: 'vendor-branches' },
+    icon: { icon: 'mdi-house-outline' },
+    action: 'list',
+    subject: 'vendor',
+  },
+  {
+    title: 'Pending Request',
     to: { name: 'pending-invoice' },
     icon: { icon: 'mdi-file-document-outline' },
     action: 'update',
